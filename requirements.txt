@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+SQLAlchemy
+asyncpg
+alembic
+pytest
+pytest-asyncio
+httpx
