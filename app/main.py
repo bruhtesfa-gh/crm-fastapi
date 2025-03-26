@@ -2,9 +2,11 @@ from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.exception_handlers import (http_exception_handler,
-                                    request_validation_exception_handler,
-                                    unhandled_exception_handler)
+from app.exception_handlers import (
+    http_exception_handler,
+    request_validation_exception_handler,
+    unhandled_exception_handler,
+)
 from app.middleware import log_request_middleware
 from app.util.setting import get_settings
 
@@ -33,9 +35,9 @@ def create_application() -> FastAPI:
     )
     application.middleware("http")(log_request_middleware)
     application.add_exception_handler(
-        RequestValidationError, request_validation_exception_handler
+        RequestValidationError, request_validation_exception_handler  # type: ignore
     )
-    application.add_exception_handler(HTTPException, http_exception_handler)
+    application.add_exception_handler(HTTPException, http_exception_handler)  # type: ignore
     application.add_exception_handler(Exception, unhandled_exception_handler)
 
     return application

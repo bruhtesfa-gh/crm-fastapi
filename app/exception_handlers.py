@@ -2,11 +2,10 @@ import sys
 from typing import Union
 
 from fastapi import Request
-from fastapi.exception_handlers import \
-    http_exception_handler as _http_exception_handler
-from fastapi.exception_handlers import \
-    request_validation_exception_handler as \
-    _request_validation_exception_handler
+from fastapi.exception_handlers import http_exception_handler as _http_exception_handler
+from fastapi.exception_handlers import (
+    request_validation_exception_handler as _request_validation_exception_handler,
+)
 from fastapi.exceptions import HTTPException, RequestValidationError
 from fastapi.responses import JSONResponse, PlainTextResponse, Response
 from pydantic import ValidationError
@@ -64,10 +63,7 @@ async def unhandled_exception_handler(
     )
 
     # Fetch exception info
-    exception_type, exception_value, exception_traceback = sys.exc_info()
-    exception_name = getattr(exception_type, "__name__", None)
-
-    # logger.error(f'{host}:{port} - "{request.method} {url}" 500 Internal Server Error <{exception_name}: {exception_value}>')
+    exception_value = sys.exc_info()
 
     # Handle ExceptionGroup and ValidationErrors specifically
     if isinstance(exc, ExceptionGroup):
@@ -87,6 +83,4 @@ async def unhandled_exception_handler(
                 f"Field: {error['loc']}, Message: {error['msg']}, Type: {error['type']}"
             )
 
-    # Return the detailed exception as a response
-    error_message = f"Unhandled Exception: {exception_name}: {str(exc)}"
     return PlainTextResponse(str(exception_value), status_code=500)
