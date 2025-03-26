@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "crm-fastapi"
+version = "0.1.0"
+description = "An asynchronous FastAPI CRM backend"
+authors = ["Bruhtesfa Zelealem Enyew <bruhtesfazelealem436@gmail.com>"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "*"
+uvicorn = { extras = ["standard"], version = "*" }
+SQLAlchemy = "^1.4"
+asyncpg = "*"
+alembic = "*"
+python-dotenv = "*"
+pydantic = {extras = ["email"], version = "^2.10.6"}
+
+[tool.poetry.dev-dependencies]
+pytest = "*"
+pytest-asyncio = "*"
+httpx = "*"
+black = "*"
+isort = "*"
+autoflake = "*"
+mypy = "*"
+flake8 = "*"
+poethepoet = "*"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

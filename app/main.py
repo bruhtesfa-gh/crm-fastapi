@@ -1,27 +1,54 @@
-# main.py
-from fastapi import FastAPI, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
-from app.db import get_db
-from app.models import Lead, LeadStatus
-from pydantic import BaseModel, EmailStr, validator
+from fastapi import FastAPI, HTTPException
+from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(title="Async CRM Backend")
+from app.exception_handlers import (http_exception_handler,
+                                    request_validation_exception_handler,
+                                    unhandled_exception_handler)
+from app.middleware import log_request_middleware
+from app.util.setting import get_settings
 
-# Pydantic schema for input validation
-class LeadCreate(BaseModel):
-    name: str
-    email: EmailStr | None = None  # Optional email, but business rules can enforce its presence later
-    phone: str | None = None
+settings = get_settings()
 
-    @validator("email")
-    def email_must_be_present_for_qualification(cls, v, values):
-        # Custom business logic can be applied here if needed
-        return v
 
-@app.post("/leads/", response_model=LeadCreate, status_code=status.HTTP_201_CREATED)
-async def create_lead(lead: LeadCreate, db: AsyncSession = Depends(get_db)):
-    new_lead = Lead(name=lead.name, email=lead.email, phone=lead.phone)
-    db.add(new_lead)
-    await db.commit()
-    await db.refresh(new_lead)
-    return lead
+def create_application() -> FastAPI:
+    """
+    Create the FastAPI application
+    """
+    # create the FastAPI application
+    application = FastAPI(
+        title="Async CRM Backend",
+        root_path="",
+        openapi_url="/openapi.json",
+        swagger_ui_parameters={"docExpansion": "none"},
+    )
+    #
+    # CORS
+    application.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.ALLOWED_HOSTS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    application.middleware("http")(log_request_middleware)
+    application.add_exception_handler(
+        RequestValidationError, request_validation_exception_handler
+    )
+    application.add_exception_handler(HTTPException, http_exception_handler)
+    application.add_exception_handler(Exception, unhandled_exception_handler)
+
+    return application
+
+
+app: FastAPI = create_application()
+
+
+@app.get("/")
+async def health_check():
+    """
+    Root path
+    """
+    return {
+        "message": "Hello from Async CRM Backend!",
+    }
