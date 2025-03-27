@@ -14,6 +14,7 @@ class TimeStamp(Base):
         DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow
     )
 
+
 # Define the join table for Role and Permission
 role_permissions = Table(
     "role_permissions",
@@ -21,12 +22,17 @@ role_permissions = Table(
     Column("role_id", Integer, ForeignKey("roles.id"), primary_key=True),
     Column("permission_id", Integer, ForeignKey("permissions.id"), primary_key=True),
 )
+
+
 class Permission(TimeStamp):
     __tablename__ = "permissions"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, nullable=False)
     description = Column(String, nullable=True)
-    roles = relationship("Role", secondary="role_permissions", back_populates="permissions")
+    roles = relationship(
+        "Role", secondary="role_permissions", back_populates="permissions"
+    )
+
 
 class Role(TimeStamp):
     __tablename__ = "roles"
@@ -34,7 +40,10 @@ class Role(TimeStamp):
     name = Column(String, unique=True, nullable=False)
     description = Column(String, nullable=True)
     users = relationship("User", back_populates="role")
-    permissions = relationship("Permission", secondary="role_permissions", back_populates="roles")
+    permissions = relationship(
+        "Permission", secondary="role_permissions", back_populates="roles"
+    )
+
 
 # User Model
 class User(TimeStamp):

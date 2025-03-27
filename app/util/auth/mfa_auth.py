@@ -1,12 +1,10 @@
-from app.schema.index import MeUser
-from app.schema.index import MeUser
-from app.util.auth.token import ApiToken
-import arrow
 from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
-from pydantic import UUID4
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.crud.user import user_crud
+from app.schema import LoginResponse, MeUser
+from app.util.auth.token import ApiToken
 
 
 class MFAAuth(ApiToken):
@@ -24,8 +22,8 @@ class MFAAuth(ApiToken):
         self.password = password
         self.db = db
         super().__init__()
-    
-    async def authenticate(self) -> dict:
+
+    async def authenticate(self) -> LoginResponse:
         """Sign in request - Authentication
 
         Raises:
@@ -34,7 +32,7 @@ class MFAAuth(ApiToken):
         Returns:
             dict: OTP sent successfully
         """
-           
+
         user = await user_crud.authenticate(
             self.db,
             username=self.username,
@@ -46,9 +44,10 @@ class MFAAuth(ApiToken):
         # return jsonable_encoder(user)
         me = MeUser(**jsonable_encoder(user))
         token = self.generate_token(userObj=me)
-        return dict(
-            user_id=user.id,
+
+        return LoginResponse(
+            id=int(user.id),
             access_token=token,
             msg="Login successful without OTP",
-            me=me
+            me=me,
         )

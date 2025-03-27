@@ -5,11 +5,12 @@ import arrow
 from fastapi.encoders import jsonable_encoder
 from jose import jwt
 
-from app.util.setting import get_settings
-from app.schema.index import MeUser
+from app.schema import MeUser
 from app.util.constants import DEFAULT_TIMEZONE
+from app.util.setting import get_settings
 
 settings = get_settings()
+
 
 class AppBaseToken(ABC):
 
@@ -38,15 +39,16 @@ class AppBaseToken(ABC):
             {
                 "exp": exp,
                 "nbf": now,
-                "sub": userObj.id,
+                "sub": str(userObj.id),
                 "user": jsonable_encoder(userObj),
                 "type": self.type,
                 "action": self.action,
             },
-            settings.SECRET_KEY,
-            algorithm="HS256",
+            str(settings.SECRET_KEY),
+            algorithm=str(settings.ALGORITHM),
         )
         return encoded_jwt
+
 
 class ApiToken(AppBaseToken):
 

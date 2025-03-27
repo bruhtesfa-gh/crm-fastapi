@@ -1,17 +1,19 @@
-from typing import Optional, List
-
-from pydantic import BaseModel
 from datetime import datetime
+from typing import List
+
+from pydantic import BaseModel, EmailStr
 
 
 class TimeStamp(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+
 class Permission(BaseModel):
     id: int
     name: str
     description: str
+
 
 class Role(BaseModel):
     id: int
@@ -22,15 +24,21 @@ class Role(BaseModel):
 
 class UserInDBBase(TimeStamp):
     id: int
-    username: str
+    username: EmailStr
     role_id: int
+
 
 class UserInDB(UserInDBBase):
     password: str
 
+
 class MeUser(UserInDBBase):
     role: Role
 
-class TokenPayload(BaseModel):
-    sub: Optional[str] = None
-    user: MeUser
+
+class UpdateUserBody(BaseModel):
+    username: EmailStr | None = None
+
+
+class UpdateUserRoleBody(BaseModel):
+    role: str

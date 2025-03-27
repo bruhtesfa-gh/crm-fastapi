@@ -1,28 +1,26 @@
-from typing import Any, Generator, Optional, cast
+from typing import List
 
 from fastapi import Depends, HTTPException, Request, status
-from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt
-from pydantic import UUID4, ValidationError
-from app.util.setting import get_settings
-from app.schema.index import TokenPayload
+from pydantic import ValidationError
+
 from app.models import User
+from app.schema import MeUser, TokenPayload
+from app.util.setting import get_settings
 
 settings = get_settings()
 
-reusable_oauth2 = OAuth2PasswordBearer(
-    tokenUrl=f"/auth/login"
-)
+reusable_oauth2 = OAuth2PasswordBearer(tokenUrl="/auth/login")
+
 
 # Function to verify the access token extracted from the request
 def verify_access_token(token: str) -> TokenPayload:
     try:
-        # Decode and verify the token using the secret key and algorithm
         payload = jwt.decode(
-            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+            token, str(settings.SECRET_KEY), algorithms=[str(settings.ALGORITHM)]
         )
-        return TokenPayload(**payload)
+        return TokenPayload(sub=str(payload["sub"]), user=MeUser(**payload["user"]))
     except (jwt.JWTError, ValidationError):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -30,20 +28,26 @@ def verify_access_token(token: str) -> TokenPayload:
         )
 
 
-
-def get_auth_user(
-    request: Request, token: str = Depends(reusable_oauth2)
-) -> User:
+def get_auth_user(request: Request, token: str = Depends(reusable_oauth2)) -> User:
+    payload = verify_access_token(token)
     if not request:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Invalid credentials",
         )
-    if request.state.sub == "anonymous":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Could not validate credentials",
-        )
-    # if not user:
-    #     raise HTTPException(status_code=404, detail="User not found")
-    return User(**jsonable_encoder(request.state.user), hashed_password="dummy")
+    request.state.sub = payload.sub
+    request.state.user = payload.user
+
+    return User(**payload.user.__dict__, hashed_password="dummy")
+
+
+def get_role_user(required_role: List[str]):
+    def dependency(auth_user: MeUser = Depends(get_auth_user)) -> MeUser:
+        if auth_user.role.name not in required_role:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Insufficient privileges. {', '.join(required_role)} role required.",
+            )
+        return auth_user
+
+    return dependency
