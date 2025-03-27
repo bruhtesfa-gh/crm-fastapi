@@ -1,5 +1,8 @@
 .PHONY: run format lint
 
+seed:
+	poetry run python seed.py
+
 run:
 	poetry run uvicorn app.main:app --reload
 
