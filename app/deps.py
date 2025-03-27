@@ -28,7 +28,7 @@ def verify_access_token(token: str) -> TokenPayload:
         )
 
 
-def get_auth_user(request: Request, token: str = Depends(reusable_oauth2)) -> User:
+def get_auth_user(request: Request, token: str = Depends(reusable_oauth2)) -> MeUser:
     payload = verify_access_token(token)
     if not request:
         raise HTTPException(
@@ -38,7 +38,7 @@ def get_auth_user(request: Request, token: str = Depends(reusable_oauth2)) -> Us
     request.state.sub = payload.sub
     request.state.user = payload.user
 
-    return User(**payload.user.__dict__, hashed_password="dummy")
+    return MeUser(**payload.user.__dict__)
 
 
 def get_role_user(required_role: List[str]):
