@@ -1,11 +1,11 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import List, Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.models import Permission, Role
-
+from app.schema.user import RoleCreate, RoleUpdate
 
 class CRUDRole:
     async def get(self, db: AsyncSession, id: int) -> Optional[Role]:
@@ -45,24 +45,24 @@ class CRUDRole:
         result = await db.execute(query)
         return result.scalars().all()
 
-    async def create(self, db: AsyncSession, *, obj_in: Dict[str, Any]) -> Role:
+    async def create(self, db: AsyncSession, *, obj_in: RoleCreate) -> Role:
         """
         Create new role
         """
-        db_obj = Role(name=obj_in["name"], description=obj_in.get("description"))
+        db_obj = Role(name=obj_in.name, description=obj_in.description)
 
         # Handle permissions if provided
-        if "permission_ids" in obj_in:
-            permissions = await self._get_permissions(db, obj_in["permission_ids"])
+        if obj_in.permissions:
+            permissions = await self._get_permissions(db, obj_in.permissions)
             db_obj.permissions = permissions
 
         db.add(db_obj)
         await db.commit()
         await db.refresh(db_obj)
-        return db_obj
+        return await self.get(db, db_obj.id)
 
     async def update(
-        self, db: AsyncSession, *, db_obj: Role, obj_in: Union[Dict[str, Any], Any]
+        self, db: AsyncSession, *, db_obj: Role, obj_in: RoleUpdate
     ) -> Role:
         """
         Update role

@@ -3,7 +3,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import auth, users
+from app.api import auth, roles, users
 from app.util.setting import get_settings
 
 settings = get_settings()
@@ -55,6 +55,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(users.router)
+app.include_router(roles.router)
 
 
 @app.get("/")

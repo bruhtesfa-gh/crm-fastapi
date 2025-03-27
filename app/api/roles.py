@@ -5,8 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud import role_crud
 from app.db import get_db
-from app.deps import verify_access_token
-from app.models import Role
+from app.deps import get_role_user
+from app.schema import Role
+from app.schema.user import MeUser, RoleBase, RoleCreate
 
 router = APIRouter(prefix="/roles", tags=["Roles"])
 
@@ -16,19 +17,36 @@ async def get_roles(
     skip: int = 0,
     limit: int = 100,
     db: AsyncSession = Depends(get_db),
-    token: str = Depends(verify_access_token),
+    me: MeUser = Depends(get_role_user(["Admin"])),
 ) -> List[Role]:
     """
     Get list of roles
     """
     return await role_crud.get_multi(db, skip=skip, limit=limit)
 
+@router.post("/", response_model=Role)
+async def create_role(
+    body: RoleCreate,
+    db: AsyncSession = Depends(get_db),
+    me: MeUser = Depends(get_role_user(["Admin"])),
+) -> Role:
+    """
+    Create new role
+    """
+    role = await role_crud.get_by_name(db, name=body.name)
+    if role:
+        raise HTTPException(status_code=400, detail="Role already exists")
+
+    return await role_crud.create(
+        db,
+        obj_in=body,
+    )
 
 @router.get("/{role_id}", response_model=Role)
 async def get_role(
     role_id: int,
     db: AsyncSession = Depends(get_db),
-    token: str = Depends(verify_access_token),
+    me: MeUser = Depends(get_role_user(["Admin"])),
 ) -> Role:
     """
     Get role by ID
@@ -39,30 +57,6 @@ async def get_role(
     return role
 
 
-@router.post("/", response_model=Role)
-async def create_role(
-    name: str,
-    description: Optional[str] = None,
-    permission_ids: Optional[List[int]] = None,
-    db: AsyncSession = Depends(get_db),
-    token: str = Depends(verify_access_token),
-) -> Role:
-    """
-    Create new role
-    """
-    role = await role_crud.get_by_name(db, name=name)
-    if role:
-        raise HTTPException(status_code=400, detail="Role already exists")
-
-    return await role_crud.create(
-        db,
-        obj_in={
-            "name": name,
-            "description": description,
-            "permission_ids": permission_ids,
-        },
-    )
-
 
 @router.put("/{role_id}", response_model=Role)
 async def update_role(
@@ -71,7 +65,7 @@ async def update_role(
     description: Optional[str] = None,
     permission_ids: Optional[List[int]] = None,
     db: AsyncSession = Depends(get_db),
-    token: str = Depends(verify_access_token),
+    me: MeUser = Depends(get_role_user(["Admin"])),
 ) -> Role:
     """
     Update role
@@ -95,7 +89,7 @@ async def update_role(
 async def delete_role(
     role_id: int,
     db: AsyncSession = Depends(get_db),
-    token: str = Depends(verify_access_token),
+    me: MeUser = Depends(get_role_user(["Admin"])),
 ):
     """
     Delete role
@@ -111,7 +105,7 @@ async def add_permission_to_role(
     role_id: int,
     permission_id: int,
     db: AsyncSession = Depends(get_db),
-    token: str = Depends(verify_access_token),
+    me: MeUser = Depends(get_role_user(["Admin"])),
 ):
     """
     Add a permission to a role
@@ -129,7 +123,7 @@ async def remove_permission_from_role(
     role_id: int,
     permission_id: int,
     db: AsyncSession = Depends(get_db),
-    token: str = Depends(verify_access_token),
+    me: MeUser = Depends(get_role_user(["Admin"])),
 ):
     """
     Remove a permission from a role

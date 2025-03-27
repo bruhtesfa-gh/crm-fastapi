@@ -14,13 +14,23 @@ class Permission(BaseModel):
     name: str
     description: str
 
-
-class Role(BaseModel):
+class RoleBase(BaseModel):
     id: int
     name: str
     description: str
-    permissions: List[Permission]
 
+class RoleCreate(BaseModel):
+    name: str
+    description: str
+    permissions: List[int]
+
+class RoleUpdate(RoleBase):
+    name: str | None = None
+    description: str | None = None
+    permissions: List[int] | None = None
+
+class Role(RoleBase):
+    permissions: List[Permission]
 
 class UserInDBBase(TimeStamp):
     id: int
