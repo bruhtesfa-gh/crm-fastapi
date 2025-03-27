@@ -6,8 +6,7 @@ from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
 from pydantic import UUID4
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from app import crud
+from app.crud.user import user_crud
 
 
 class MFAAuth(ApiToken):
@@ -25,8 +24,8 @@ class MFAAuth(ApiToken):
         self.password = password
         self.db = db
         super().__init__()
-
-    def authenticate(self) -> dict:
+    
+    async def authenticate(self) -> dict:
         """Sign in request - Authentication
 
         Raises:
@@ -35,16 +34,16 @@ class MFAAuth(ApiToken):
         Returns:
             dict: OTP sent successfully
         """
-
-        user = crud.user.authenticate(
+           
+        user = await user_crud.authenticate(
             self.db,
-            email=self.username,
+            username=self.username,
             password=self.password,
         )
 
         if not user:
             raise HTTPException(status_code=400, detail="Incorrect email or password")
-
+        # return jsonable_encoder(user)
         me = MeUser(**jsonable_encoder(user))
         token = self.generate_token(userObj=me)
         return dict(

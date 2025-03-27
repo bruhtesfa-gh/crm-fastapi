@@ -24,14 +24,14 @@ role_permissions = Table(
 class Permission(TimeStamp):
     __tablename__ = "permissions"
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
+    name = Column(String, unique=True, nullable=False)
     description = Column(String, nullable=True)
     roles = relationship("Role", secondary="role_permissions", back_populates="permissions")
 
 class Role(TimeStamp):
     __tablename__ = "roles"
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)
+    name = Column(String, unique=True, nullable=False)
     description = Column(String, nullable=True)
     users = relationship("User", back_populates="role")
     permissions = relationship("Permission", secondary="role_permissions", back_populates="roles")

@@ -13,6 +13,7 @@ from app.exception_handlers import (
 )
 from app.middleware import log_request_middleware
 from app.util.setting import get_settings
+from app.api import auth, users
 
 settings = get_settings()
 
@@ -37,12 +38,12 @@ def create_application() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    application.middleware("http")(log_request_middleware)
-    application.add_exception_handler(
-        RequestValidationError, request_validation_exception_handler  # type: ignore
-    )
-    application.add_exception_handler(HTTPException, http_exception_handler)  # type: ignore
-    application.add_exception_handler(Exception, unhandled_exception_handler)
+    # application.middleware("http")(log_request_middleware)
+    # application.add_exception_handler(
+    #     RequestValidationError, request_validation_exception_handler  # type: ignore
+    # )
+    # application.add_exception_handler(HTTPException, http_exception_handler)  # type: ignore
+    # application.add_exception_handler(Exception, unhandled_exception_handler)
 
     return application
 
@@ -85,6 +86,9 @@ class CustomMiddleware(BaseHTTPMiddleware):
 
 # Add the custom middleware to the FastAPI app
 app.add_middleware(CustomMiddleware)
+
+app.include_router(auth.router)
+app.include_router(users.router)
 
 @app.get("/")
 async def health_check():

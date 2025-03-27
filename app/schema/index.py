@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel
 from datetime import datetime
@@ -8,10 +8,17 @@ class TimeStamp(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+class Permission(BaseModel):
+    id: int
+    name: str
+    description: str
+
 class Role(BaseModel):
     id: int
     name: str
     description: str
+    permissions: List[Permission]
+
 
 class UserInDBBase(TimeStamp):
     id: int

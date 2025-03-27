@@ -12,7 +12,7 @@ from app.models import User
 settings = get_settings()
 
 reusable_oauth2 = OAuth2PasswordBearer(
-    tokenUrl=f"/auth/login/access-token"
+    tokenUrl=f"/auth/login"
 )
 
 # Function to verify the access token extracted from the request
