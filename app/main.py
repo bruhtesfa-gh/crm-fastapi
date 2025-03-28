@@ -3,7 +3,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import auth, roles, users
+from app.api import auth, leads, quotations, roles, users
 from app.util.setting import get_settings
 
 settings = get_settings()
@@ -53,11 +53,6 @@ app.add_middleware(
 )
 
 
-app.include_router(auth.router)
-app.include_router(users.router)
-app.include_router(roles.router)
-
-
 @app.get("/")
 async def health_check():
     """
@@ -67,3 +62,10 @@ async def health_check():
         "status": "ok",
         "message": "Hello from Async CRM Backend!",
     }
+
+
+app.include_router(auth.router)
+app.include_router(users.router)
+app.include_router(roles.router)
+app.include_router(leads.router)
+app.include_router(quotations.router)

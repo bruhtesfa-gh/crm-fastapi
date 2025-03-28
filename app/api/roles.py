@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,7 +7,7 @@ from app.crud import role_crud
 from app.db import get_db
 from app.deps import get_role_user
 from app.schema import Role
-from app.schema.user import MeUser, RoleBase, RoleCreate
+from app.schema.user import MeUser, RoleCreate, RoleUpdate
 
 router = APIRouter(prefix="/roles", tags=["Roles"])
 
@@ -18,11 +18,12 @@ async def get_roles(
     limit: int = 100,
     db: AsyncSession = Depends(get_db),
     me: MeUser = Depends(get_role_user(["Admin"])),
-) -> List[Role]:
+) -> List[Any]:
     """
     Get list of roles
     """
     return await role_crud.get_multi(db, skip=skip, limit=limit)
+
 
 @router.post("/", response_model=Role)
 async def create_role(
@@ -40,7 +41,9 @@ async def create_role(
     return await role_crud.create(
         db,
         obj_in=body,
+        user_id=me.id,
     )
+
 
 @router.get("/{role_id}", response_model=Role)
 async def get_role(
@@ -57,7 +60,6 @@ async def get_role(
     return role
 
 
-
 @router.put("/{role_id}", response_model=Role)
 async def update_role(
     role_id: int,
@@ -66,7 +68,7 @@ async def update_role(
     permission_ids: Optional[List[int]] = None,
     db: AsyncSession = Depends(get_db),
     me: MeUser = Depends(get_role_user(["Admin"])),
-) -> Role:
+) -> Any:
     """
     Update role
     """
@@ -74,15 +76,13 @@ async def update_role(
     if not role:
         raise HTTPException(status_code=404, detail="Role not found")
 
-    update_data: Dict[str, Any] = {}
-    if name:
-        update_data["name"] = name
-    if description:
-        update_data["description"] = description
-    if permission_ids is not None:
-        update_data["permission_ids"] = permission_ids
+    update_data: RoleUpdate = RoleUpdate(
+        name=name,
+        description=description,
+        permissions=permission_ids,
+    )
 
-    return await role_crud.update(db, db_obj=role, obj_in=update_data)
+    return await role_crud.update(db, db_obj=role, obj_in=update_data, user_id=me.id)
 
 
 @router.delete("/{role_id}")
@@ -94,7 +94,7 @@ async def delete_role(
     """
     Delete role
     """
-    role = await role_crud.remove(db, id=role_id)
+    role = await role_crud.remove(db, id=role_id, user_id=me.id)
     if not role:
         raise HTTPException(status_code=404, detail="Role not found")
     return {"message": "Role deleted successfully"}
@@ -111,7 +111,7 @@ async def add_permission_to_role(
     Add a permission to a role
     """
     role = await role_crud.add_permission(
-        db, role_id=role_id, permission_id=permission_id
+        db, role_id=role_id, permission_id=permission_id, user_id=me.id
     )
     if not role:
         raise HTTPException(status_code=404, detail="Role not found")
@@ -129,7 +129,7 @@ async def remove_permission_from_role(
     Remove a permission from a role
     """
     role = await role_crud.remove_permission(
-        db, role_id=role_id, permission_id=permission_id
+        db, role_id=role_id, permission_id=permission_id, user_id=me.id
     )
     if not role:
         raise HTTPException(status_code=404, detail="Role not found")

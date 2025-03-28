@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, EmailStr
 
@@ -14,23 +14,28 @@ class Permission(BaseModel):
     name: str
     description: str
 
+
 class RoleBase(BaseModel):
     id: int
     name: str
     description: str
+
 
 class RoleCreate(BaseModel):
     name: str
     description: str
     permissions: List[int]
 
-class RoleUpdate(RoleBase):
-    name: str | None = None
-    description: str | None = None
-    permissions: List[int] | None = None
+
+class RoleUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    permissions: Optional[List[int]] = None
+
 
 class Role(RoleBase):
     permissions: List[Permission]
+
 
 class UserInDBBase(TimeStamp):
     id: int

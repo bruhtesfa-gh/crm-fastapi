@@ -1,11 +1,14 @@
 from typing import Any, Dict, List, Optional, Union
 
 from fastapi import HTTPException
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models import Role, User
+from app.crud.audit import crud_audit
+from app.models import EntityType, Role, User
+from app.schema.auditlog import AuditLogCreate
 from app.util.auth.hasher import hash_password, verify_password
 
 
@@ -69,16 +72,25 @@ class CRUDUser:
             .where(User.id == db_obj.id)
         )
         result = await db.execute(query)
-        return result.scalar_one()
+        user: User = result.scalar_one()
+        return user
 
     async def update(
-        self, db: AsyncSession, *, db_obj: User, obj_in: Union[Dict[str, Any], Any]
+        self,
+        db: AsyncSession,
+        *,
+        db_obj: User,
+        obj_in: Union[Dict[str, Any], Any],
+        user_id: int
     ) -> User:
         """
         Update user
         """
         update_data = obj_in.copy() if isinstance(obj_in, dict) else obj_in.dict()
-
+        if "role_id" in update_data:
+            before_values = jsonable_encoder(db_obj.role)
+        else:
+            before_values = jsonable_encoder(db_obj)
         if "password" in update_data:
             hashed_password = hash_password(update_data["password"])
             del update_data["password"]
@@ -90,9 +102,26 @@ class CRUDUser:
         db.add(db_obj)
         await db.commit()
         await db.refresh(db_obj)
+        if "role_id" in update_data:
+            action = "Update User Role"
+            after_values = jsonable_encoder(db_obj.role)
+        else:
+            action = "Update User"
+            after_values = jsonable_encoder(db_obj)
+        _obj_in = AuditLogCreate(
+            entity_type=EntityType.USER,
+            entity_id=db_obj.id,
+            user_id=user_id,
+            action=action,
+            before_values=before_values,
+            after_values=after_values,
+        )
+        crud_audit.create(db, obj_in=_obj_in)
         return db_obj
 
-    async def remove(self, db: AsyncSession, *, id: int) -> Optional[User]:
+    async def remove(
+        self, db: AsyncSession, *, id: int, user_id: int
+    ) -> Optional[User]:
         """
         Delete user
         """
@@ -100,6 +129,15 @@ class CRUDUser:
         if obj:
             await db.delete(obj)
             await db.commit()
+            before_values = jsonable_encoder(obj)
+            _obj_in = AuditLogCreate(
+                entity_type=EntityType.USER,
+                entity_id=obj.id,
+                user_id=user_id,
+                action="Delete User",
+                before_values=before_values,
+            )
+            crud_audit.create(db, obj_in=_obj_in)
         return obj
 
     async def authenticate(

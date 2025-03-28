@@ -80,8 +80,9 @@ async def update_user(
     update_data = {}
     if body.username:
         update_data["username"] = body.username
-
-    updated_user = await user_crud.update(db, db_obj=user, obj_in=update_data)
+    updated_user = await user_crud.update(
+        db, db_obj=user, obj_in=update_data, user_id=me.id
+    )
     return updated_user
 
 
@@ -101,9 +102,10 @@ async def update_user_role(
     role_db = await role_crud.get_by_name(db, name=body.role)
     if not role_db:
         raise HTTPException(status_code=404, detail="Role not found")
-
     update_data = {"role_id": role_db.id}
-    updated_user = await user_crud.update(db, db_obj=user, obj_in=update_data)
+    updated_user = await user_crud.update(
+        db, db_obj=user, obj_in=update_data, user_id=me.id
+    )
     return updated_user
 
 
@@ -123,6 +125,5 @@ async def delete_user(
         raise HTTPException(
             status_code=403, detail="You are not allowed to delete this user"
         )
-
-    await user_crud.remove(db, id=user_id)
+    await user_crud.remove(db, id=user_id, user_id=me.id)
     return {"message": "User deleted successfully"}
