@@ -38,7 +38,7 @@ def get_auth_user(request: Request, token: str = Depends(reusable_oauth2)) -> Me
     request.state.sub = payload.sub
     request.state.user = payload.user
     key = f"{request.method.capitalize()}:{request.url.path}"
-    key = f"{key}/" if not key.endswith('/') else key 
+    key = f"{key}/" if not key.endswith("/") else key
     # check if the key matches any of the permissions
     print(payload.user.role.permissions, key)
     for permission in payload.user.role.permissions:

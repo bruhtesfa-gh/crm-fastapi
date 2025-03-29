@@ -158,7 +158,8 @@ async def update_quotation_status(
     ):
         raise HTTPException(
             status_code=400,
-            detail=f"Quotation status cannot be changed from {quotation.status.value} to {quotation_in.status.value}",
+            detail=f"Quotation status cannot be changed from {quotation.status.value} "
+            f"to {quotation_in.status.value}",
         )
 
     # check if the new status is APPROVED it needs manager approval
