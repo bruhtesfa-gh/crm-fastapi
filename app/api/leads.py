@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.lead import crud_lead
 from app.db import get_db
-from app.deps import get_auth_user  # or get_role_user if you need role-based access
+from app.deps import get_auth_user 
 from app.models import LeadStatus
 from app.schema.lead import (  # Pydantic schemas for leads
     LeadCreate,

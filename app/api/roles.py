@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud import role_crud
 from app.db import get_db
-from app.deps import get_role_user
+from app.deps import get_auth_user
 from app.schema import Role
 from app.schema.user import MeUser, RoleCreate, RoleUpdate
 
@@ -17,7 +17,7 @@ async def get_roles(
     skip: int = 0,
     limit: int = 100,
     db: AsyncSession = Depends(get_db),
-    me: MeUser = Depends(get_role_user(["Admin"])),
+    me: MeUser = Depends(get_auth_user),
 ) -> List[Any]:
     """
     Get list of roles
@@ -29,7 +29,7 @@ async def get_roles(
 async def create_role(
     body: RoleCreate,
     db: AsyncSession = Depends(get_db),
-    me: MeUser = Depends(get_role_user(["Admin"])),
+    me: MeUser = Depends(get_auth_user),
 ) -> Role:
     """
     Create new role
@@ -49,7 +49,7 @@ async def create_role(
 async def get_role(
     role_id: int,
     db: AsyncSession = Depends(get_db),
-    me: MeUser = Depends(get_role_user(["Admin"])),
+    me: MeUser = Depends(get_auth_user),
 ) -> Role:
     """
     Get role by ID
@@ -67,7 +67,7 @@ async def update_role(
     description: Optional[str] = None,
     permission_ids: Optional[List[int]] = None,
     db: AsyncSession = Depends(get_db),
-    me: MeUser = Depends(get_role_user(["Admin"])),
+    me: MeUser = Depends(get_auth_user),
 ) -> Any:
     """
     Update role
@@ -89,7 +89,7 @@ async def update_role(
 async def delete_role(
     role_id: int,
     db: AsyncSession = Depends(get_db),
-    me: MeUser = Depends(get_role_user(["Admin"])),
+    me: MeUser = Depends(get_auth_user),
 ):
     """
     Delete role
@@ -105,7 +105,7 @@ async def add_permission_to_role(
     role_id: int,
     permission_id: int,
     db: AsyncSession = Depends(get_db),
-    me: MeUser = Depends(get_role_user(["Admin"])),
+    me: MeUser = Depends(get_auth_user),
 ):
     """
     Add a permission to a role
@@ -123,7 +123,7 @@ async def remove_permission_from_role(
     role_id: int,
     permission_id: int,
     db: AsyncSession = Depends(get_db),
-    me: MeUser = Depends(get_role_user(["Admin"])),
+    me: MeUser = Depends(get_auth_user),
 ):
     """
     Remove a permission from a role

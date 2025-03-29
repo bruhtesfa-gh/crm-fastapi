@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.audit import crud_audit
 from app.db import get_db
-from app.deps import get_role_user
+from app.deps import get_auth_user
 from app.models import AuditLog
 from app.schema.auditlog import AuditLogFilters, AuditLogPagination, AuditLogResponse
 from app.schema.user import MeUser
@@ -18,7 +18,7 @@ async def get_audit_logs(
     limit: int = 100,
     filters: AuditLogFilters = Depends(AuditLogFilters),
     db: AsyncSession = Depends(get_db),
-    current_user: MeUser = Depends(get_role_user(["Admin"])),
+    current_user: MeUser = Depends(get_auth_user),
 ) -> AuditLogPagination:
     """
     Retrieve audit logs.
@@ -39,7 +39,7 @@ async def get_audit_logs(
 async def get_audit_log(
     audit_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: MeUser = Depends(get_role_user(["All roles"])),
+    current_user: MeUser = Depends(get_auth_user),
 ) -> AuditLog:
     """
     Retrieve a specific audit log by ID.

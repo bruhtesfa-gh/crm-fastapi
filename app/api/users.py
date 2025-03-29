@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud import role_crud, user_crud
 from app.db import get_db
-from app.deps import get_auth_user, get_role_user, user_role_check
+from app.deps import get_auth_user, user_role_check
 from app.schema import MeUser, UpdateUserBody, UpdateUserRoleBody
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -32,7 +32,7 @@ async def get_users(
     skip: int = 0,
     limit: int = 100,
     db: AsyncSession = Depends(get_db),
-    role_user: MeUser = Depends(get_role_user(["Admin"])),
+    me: MeUser = Depends(get_auth_user),
 ) -> List[MeUser]:
     """
     Get list of users
@@ -92,7 +92,7 @@ async def update_user_role(
     user_id: int,
     body: UpdateUserRoleBody,
     db: AsyncSession = Depends(get_db),
-    me: MeUser = Depends(get_role_user(["Admin"])),
+    me: MeUser = Depends(get_auth_user),
 ) -> dict:
     """
     Update user role

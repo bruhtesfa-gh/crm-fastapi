@@ -1,5 +1,6 @@
 # seed.py
 import asyncio
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy import select
 from app.models import Permission, Role, User  # Adjust these imports based on your project structure
 from app.db import get_db, engine
@@ -14,35 +15,35 @@ async def create_defaults():
             print("Default permissions already exist. Skipping seeding.")
             return
         permissions = [
-          "POST:auth/register/",
-          "GET:users/me/",
-          "GET:users/",
-          "GET:users/*/",
-          "PUT:users/*/",
-          "DELETE:users/*/",
-          "PUT:users/*/role/",
-          "GET:roles/",
-          "POST:roles/",
-          "GET:roles/*/",
-          "PUT:roles/*/",
-          "DELETE:roles/*/",
-          "POST:roles/*/permissions/*/",
-          "DELETE:roles/*/permissions/*/",
-          "GET:leads/",
-          "POST:leads/",
-          "GET:leads/*/",
-          "PUT:leads/*/",
-          "DELETE:leads/*/",
-          "PUT:leads/*/status/",
-          "GET:quotations/",
-          "POST:quotations/",
-          "GET:quotations/*/",
-          "DELETE:quotations/*/",
-          "PUT:quotations/*/line-items/",
-          "PUT:quotations/*/status/",
-          "POST:quotations/*/send/",
-          "GET:audit-logs/",
-          "GET:audit-logs/*/"
+          "POST:/auth/register/",
+          "GET:/users/me/",
+          "GET:/users/",
+          "GET:/users/*/",
+          "PUT:/users/*/",
+          "DELETE:/users/*/",
+          "PUT:/users/*/role/",
+          "GET:/roles/",
+          "POST:/roles/",
+          "GET:/roles/*/",
+          "PUT:/roles/*/",
+          "DELETE:/roles/*/",
+          "POST:/roles/*/permissions/*/",
+          "DELETE:/roles/*/permissions/*/",
+          "GET:/leads/",
+          "POST:/leads/",
+          "GET:/leads/*/",
+          "PUT:/leads/*/",
+          "DELETE:/leads/*/",
+          "PUT:/leads/*/status/",
+          "GET:/quotations/",
+          "POST:/quotations/",
+          "GET:/quotations/*/",
+          "DELETE:/quotations/*/",
+          "PUT:/quotations/*/line-items/",
+          "PUT:/quotations/*/status/",
+          "POST:/quotations/*/send/",
+          "GET:/audit-logs/",
+          "GET:/audit-logs/*/"
         ]
         for permission in permissions:
             permission = Permission(
@@ -52,22 +53,24 @@ async def create_defaults():
             session.add(permission)
         
         await session.commit()
-        admin_permissions = await session.execute(select(Permission).where(Permission.name.ilike("%'users'%") 
-                                                                     | Permission.name.ilike("%'roles'%"))
+        
+        admin_permissions = await session.execute(select(Permission).where(Permission.name.ilike(f"%users%") 
+                                                                     | Permission.name.ilike(f"%roles%"))
                                                                     )
-        admin_permissions = admin_permissions.scalars().all()   
+        admin_permissions = admin_permissions.scalars().all()
+        print(jsonable_encoder(admin_permissions))
         manager_permissions = await session.execute(select(Permission).where(
-            Permission.name.ilike("%'leads'%") 
-            | Permission.name.ilike("%'PUT:quotations/*/status/'%"))
+            Permission.name.ilike(f"%leads%") 
+            | Permission.name.ilike(f"%quotations%"))
             )
         manager_permissions = manager_permissions.scalars().all()
         seals_permissions = await session.execute(select(Permission).where(
-            Permission.name.ilike("%'leads'%") 
-                | Permission.name.ilike("%'quotations'%"))
+            Permission.name.ilike(f"%leads%") 
+                | Permission.name.ilike(f"%quotations%"))
             )
         seals_permissions = seals_permissions.scalars().all()
         all_permissions = await session.execute(select(Permission).where(
-            Permission.name.ilike("%'audit-logs'%")
+            Permission.name.ilike(f"%audit-logs%")
             )
             )
         all_permissions = all_permissions.scalars().all()

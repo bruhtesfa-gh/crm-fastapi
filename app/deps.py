@@ -1,3 +1,4 @@
+import fnmatch
 from typing import List
 
 from fastapi import Depends, HTTPException, Request, status
@@ -22,7 +23,7 @@ def verify_access_token(token: str) -> TokenPayload:
         return TokenPayload(sub=str(payload["sub"]), user=MeUser(**payload["user"]))
     except (jwt.JWTError, ValidationError):
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
         )
 
@@ -31,20 +32,22 @@ def get_auth_user(request: Request, token: str = Depends(reusable_oauth2)) -> Me
     payload = verify_access_token(token)
     if not request:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
         )
     request.state.sub = payload.sub
     request.state.user = payload.user
-
-    return MeUser(**payload.user.__dict__)
-
-
-def get_role_user(required_role: List[str]):
-    def dependency(auth_user: MeUser = Depends(get_auth_user)) -> MeUser:
-        return user_role_check(required_role, auth_user)
-
-    return dependency
+    key = f"{request.method.capitalize()}:{request.url.path}"
+    key = f"{key}/" if not key.endswith('/') else key 
+    # check if the key matches any of the permissions
+    print(payload.user.role.permissions, key)
+    for permission in payload.user.role.permissions:
+        if fnmatch.fnmatch(key, permission.name):
+            return MeUser(**payload.user.__dict__)
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Insufficient privileges",
+    )
 
 
 def user_role_check(required_role: List[str], auth_user: MeUser):
