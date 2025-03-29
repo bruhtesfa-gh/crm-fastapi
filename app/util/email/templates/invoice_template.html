@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Invoice #{{ data.id }}</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      th,
+      td {
+        border: 1px solid #dddddd;
+        padding: 8px;
+        text-align: left;
+      }
+      th {
+        background-color: #f2f2f2;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Hello {{ data.lead_name }}</h2>
+    <h2>Invoice #{{ data.id }}</h2>
+    <p><strong>Status:</strong> {{ data.status }}</p>
+    <p><strong>Total Price:</strong> ${{ data.total_price }}</p>
+    <p><strong>Created:</strong> {{ data.created_at }}</p>
+    <p><strong>Updated:</strong> {{ data.updated_at }}</p>
+
+    <h3>Line Items</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th>Quantity</th>
+          <th>Price per Unit</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in data.line_items %}
+        <tr>
+          <td>{{ item.description }}</td>
+          <td>{{ item.quantity }}</td>
+          <td>${{ item.price }}</td>
+          <td>${{ item.quantity * item.price }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <p><strong>Grand Total:</strong> ${{ data.total_price }}</p>
+  </body>
+</html>

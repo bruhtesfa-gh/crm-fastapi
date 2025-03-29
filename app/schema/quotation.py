@@ -23,8 +23,11 @@ class QuotationLineItemCreate(QuotationLineItemBase):
     pass
 
 
-class QuotationLineItemUpdate(QuotationLineItemBase):
-    pass
+class QuotationLineItemUpdate(BaseModel):
+    id: int
+    description: Optional[str] = None
+    quantity: Optional[int] = None
+    price: Optional[float] = None
 
 
 class QuotationBase(BaseModel):
@@ -39,6 +42,10 @@ class QuotationCreate(BaseModel):
 
 
 class QuotationUpdate(BaseModel):
+    line_items: List[QuotationLineItemUpdate]
+
+
+class QuotationUpdateStatus(BaseModel):
     status: QuotationStatus
 
 
@@ -50,6 +57,22 @@ class QuotationOut(QuotationBase):
 
     class Config:
         from_attributes = True
+
+
+class QuotationPagination(BaseModel):
+    items: List[QuotationOut]
+    total: int
+    page: int
+    limit: int
+    has_next: bool
+    has_prev: bool
+
+
+class QuotationFilters(BaseModel):
+    lead_id: int | None = None
+    status: QuotationStatus | None = None
+    price_from: float | None = None
+    price_to: float | None = None
 
 
 # You can also define a schema for QuotationLineItem if needed

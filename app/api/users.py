@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud import role_crud, user_crud
 from app.db import get_db
-from app.deps import get_auth_user, get_role_user
+from app.deps import get_auth_user, get_role_user, user_role_check
 from app.schema import MeUser, UpdateUserBody, UpdateUserRoleBody
 
 router = APIRouter(prefix="/users", tags=["Users"])
@@ -50,8 +50,9 @@ async def get_user(
     """
     Get user by ID
     """
+
     if user_id != me.id:
-        Depends(get_role_user(["Manager"]))
+        user_role_check(["Manager"], me)
     user = await user_crud.get(db, id=user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")

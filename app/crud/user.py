@@ -116,7 +116,7 @@ class CRUDUser:
             before_values=before_values,
             after_values=after_values,
         )
-        crud_audit.create(db, obj_in=_obj_in)
+        await crud_audit.create(obj_in=_obj_in)
         return db_obj
 
     async def remove(
@@ -137,7 +137,7 @@ class CRUDUser:
                 action="Delete User",
                 before_values=before_values,
             )
-            crud_audit.create(db, obj_in=_obj_in)
+            await crud_audit.create(obj_in=_obj_in)
         return obj
 
     async def authenticate(

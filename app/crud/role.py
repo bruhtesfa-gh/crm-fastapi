@@ -73,7 +73,7 @@ class CRUDRole:
             action="Create Role",
             after_values=after_values,
         )
-        crud_audit.create(db, obj_in=_obj_in)
+        await crud_audit.create(obj_in=_obj_in)
         role = await self.get(db, db_obj.id)
         return role if role else db_obj
 
@@ -116,7 +116,7 @@ class CRUDRole:
             before_values=before_values,
             after_values=after_values,
         )
-        crud_audit.create(db, obj_in=_obj_in)
+        await crud_audit.create(obj_in=_obj_in)
         return db_obj
 
     async def remove(
@@ -139,7 +139,7 @@ class CRUDRole:
                 action="Delete Role",
                 before_values=before_values,
             )
-            crud_audit.create(db, obj_in=_obj_in)
+            await crud_audit.create(obj_in=_obj_in)
         return obj
 
     async def add_permission(
@@ -166,7 +166,7 @@ class CRUDRole:
                 before_values=before_values,
                 after_values=after_values,
             )
-            crud_audit.create(db, obj_in=_obj_in)
+            await crud_audit.create(obj_in=_obj_in)
         return role
 
     async def remove_permission(
@@ -193,7 +193,7 @@ class CRUDRole:
                 before_values=before_values,
                 after_values=after_values,
             )
-            crud_audit.create(db, obj_in=_obj_in)
+            await crud_audit.create(obj_in=_obj_in)
         return role
 
     async def _get_permission(

@@ -2,6 +2,7 @@ import datetime
 import enum
 
 from sqlalchemy import (
+    JSON,
     Column,
     DateTime,
     Enum,
@@ -10,7 +11,6 @@ from sqlalchemy import (
     Integer,
     String,
     Table,
-    Text,
 )
 from sqlalchemy.ext.declarative import DeclarativeMeta, declarative_base
 from sqlalchemy.orm import relationship
@@ -137,8 +137,9 @@ class AuditLog(TimeStamp):
     id = Column(Integer, primary_key=True, index=True)
     entity_type = Column(Enum(EntityType), nullable=False)
     entity_id = Column(Integer, nullable=False)
-    user_id = Column(Integer, nullable=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     action = Column(String, nullable=False)
-    before_values = Column(Text, nullable=True)
-    after_values = Column(Text, nullable=True)
+    before_values = Column(JSON, nullable=True)
+    after_values = Column(JSON, nullable=True)
     context = Column(String, nullable=True)
+    user = relationship("User", backref="audit_logs")

@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, EmailStr, Field
 
@@ -53,3 +53,24 @@ class LeadOut(LeadBase):
 
     class Config:
         from_attributes = True
+
+
+class LeadPagination(BaseModel):
+    items: List[LeadOut]
+    total: int
+    page: int
+    limit: int
+    has_next: bool
+    has_prev: bool
+
+
+class LeadFilters(BaseModel):
+    name: str | None = None
+    email: str | None = None
+    phone: str | None = None
+    status: LeadStatus | None = None
+    utm_source: str | None = None
+    utm_medium: str | None = None
+    utm_campaign: str | None = None
+    utm_content: str | None = None
+    utm_term: str | None = None

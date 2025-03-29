@@ -13,117 +13,123 @@ async def create_defaults():
         if result.scalars().first() is not None:
             print("Default permissions already exist. Skipping seeding.")
             return
-
-        create_leads_permission = Permission(
-            name="POST:/leads/create",
-            description="Permission to create leads."
-        )
-        update_leads_permission = Permission(
-            name="PUT:/leads/update",
-            description="Permission to update leads."
-        )
-
-        view_leads_permission = Permission(
-            name="GET:/leads",
-            description="Permission to view leads."
-        )
-
-        draft_quotations_permission = Permission(
-            name="POST:/quotations/draft",
-            description="Permission to draft quotations."
-        )
-
-        update_quotations_permission = Permission(
-            name="PUT:/quotations/update",
-            description="Permission to update quotations."
-        )
-
-        approve_quotations_permission = Permission(
-            name="PUT:/quotations/approve",
-            description="Permission to approve or reject quotations."
-        )
-
-        view_quotations_permission = Permission(
-            name="GET:/quotations",
-            description="Permission to view quotations."
-        )
-
-        create_users_permission = Permission(
-            name="POST:/users/create",
-            description="Permission to create users."
-        )
-
-        update_users_permission = Permission(
-            name="PUT:/users/update",
-            description="Permission to update users."
-        )
+        permissions = [
+          "POST:auth/register/",
+          "GET:users/me/",
+          "GET:users/",
+          "GET:users/*/",
+          "PUT:users/*/",
+          "DELETE:users/*/",
+          "PUT:users/*/role/",
+          "GET:roles/",
+          "POST:roles/",
+          "GET:roles/*/",
+          "PUT:roles/*/",
+          "DELETE:roles/*/",
+          "POST:roles/*/permissions/*/",
+          "DELETE:roles/*/permissions/*/",
+          "GET:leads/",
+          "POST:leads/",
+          "GET:leads/*/",
+          "PUT:leads/*/",
+          "DELETE:leads/*/",
+          "PUT:leads/*/status/",
+          "GET:quotations/",
+          "POST:quotations/",
+          "GET:quotations/*/",
+          "DELETE:quotations/*/",
+          "PUT:quotations/*/line-items/",
+          "PUT:quotations/*/status/",
+          "POST:quotations/*/send/",
+          "GET:audit-logs/",
+          "GET:audit-logs/*/"
+        ]
+        for permission in permissions:
+            permission = Permission(
+                name=permission,
+                description="Permission to " + permission
+            )
+            session.add(permission)
         
-        update_users_role_permission = Permission(
-            name="PUT:/users/role",
-            description="Permission to update users role."
-        )
+        await session.commit()
+        admin_permissions = await session.execute(select(Permission).where(Permission.name.ilike("%'users'%") 
+                                                                     | Permission.name.ilike("%'roles'%"))
+                                                                    )
+        admin_permissions = admin_permissions.scalars().all()   
+        manager_permissions = await session.execute(select(Permission).where(
+            Permission.name.ilike("%'leads'%") 
+            | Permission.name.ilike("%'PUT:quotations/*/status/'%"))
+            )
+        manager_permissions = manager_permissions.scalars().all()
+        seals_permissions = await session.execute(select(Permission).where(
+            Permission.name.ilike("%'leads'%") 
+                | Permission.name.ilike("%'quotations'%"))
+            )
+        seals_permissions = seals_permissions.scalars().all()
+        all_permissions = await session.execute(select(Permission).where(
+            Permission.name.ilike("%'audit-logs'%")
+            )
+            )
+        all_permissions = all_permissions.scalars().all()
 
-        view_users_permission = Permission(
-            name="GET:/users",
-            description="Permission to view users."
-        )
-
-        view_users_role_permission = Permission(
-            name="GET:/users/role",
-            description="Permission to view users role."
-        )
-
-        view_audit_logs_permission = Permission(
-            name="GET:/audit-logs",
-            description="Permission to view audit logs."
-        )
-        
-        
-        # Create roles and assign permissions
         role_admin = Role(
             name="Admin",
-            description="Administrator with full permissions."
+            description="Admin with permission to manage users, roles, and audit logs."
         )
+        role_admin.permissions = admin_permissions
 
         # role admin have a permission to manage users
-        role_admin.permissions = [create_users_permission, update_users_permission, update_users_role_permission, view_users_permission, view_users_role_permission]
         role_manager = Role(
             name="Manager",
             description="Manager with permission to approve quotations."
         )
+
+
         # role manager have a permission to approve quotations
-        role_manager.permissions = [approve_quotations_permission]
+        role_manager.permissions = manager_permissions
 
         role_seals = Role(
             name="Sales Rep",
-            description="Seals with permission to manage seals."
+            description="Sales Rep with permission to manage leads and quotations."
         )
 
         # role seals have a permission to create leads
-        role_seals.permissions = [create_leads_permission, update_leads_permission, view_leads_permission, draft_quotations_permission, update_quotations_permission, view_quotations_permission]
+        role_seals.permissions = seals_permissions
 
         role_all = Role(
             name="All roles",
             description="All with permission to manage all."
         )
-        role_all.permissions = [view_audit_logs_permission]
+        role_all.permissions = all_permissions
 
 
         # Create a default user assigned to the Admin role
-        default_user = User(
-            username="admin",
+        admin_user = User(
+            username="admin@gmail.com",
             hashed_password=hash_password("admin123"),  # Replace with secure password hashing
             role=role_admin
         )
+        manager_user = User(
+            username="manager@gmail.com",
+            hashed_password=hash_password("manager123"),  # Replace with secure password hashing
+            role=role_manager
+        )
 
+        seals_user = User(
+            username="seals@gmail.com",
+            hashed_password=hash_password("seals123"),  # Replace with secure password hashing
+            role=role_seals
+        )
+
+        all_user = User(
+            username="all@gmail.com",
+            hashed_password=hash_password("all123"),  # Replace with secure password hashing
+            role=role_all
+        )
+        
         # Add all entities to the session and commit the changes
         session.add_all([
-            create_leads_permission, update_leads_permission, view_leads_permission,
-            draft_quotations_permission, update_quotations_permission, approve_quotations_permission,
-            view_quotations_permission, create_users_permission, update_users_permission,
-            update_users_role_permission, view_users_permission, view_users_role_permission,
-            view_audit_logs_permission,
-            role_admin, role_manager, role_seals, role_all, default_user
+            role_admin, role_manager, role_seals, role_all, admin_user, manager_user, seals_user, all_user
         ])
         await session.commit()
         print("Default permissions, roles, and user seeded successfully.")

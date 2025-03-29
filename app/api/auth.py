@@ -36,7 +36,7 @@ async def login(
         before_values=before_values,
         after_values=after_values,
     )
-    crud_audit.create(db, obj_in=obj_audit)
+    await crud_audit.create(obj_in=obj_audit)
     return log_in
 
 
@@ -71,5 +71,5 @@ async def register(body: RegisterBody, db: AsyncSession = Depends(get_db)) -> Di
         action="Register",
         before_values=before_values,
     )
-    crud_audit.create(db, obj_in=obj_audit)
+    await crud_audit.create(obj_in=obj_audit)
     return user

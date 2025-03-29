@@ -1,6 +1,5 @@
-from typing import List
-
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.crud.lead import crud_lead
@@ -9,7 +8,9 @@ from app.deps import get_auth_user  # or get_role_user if you need role-based ac
 from app.models import LeadStatus
 from app.schema.lead import (  # Pydantic schemas for leads
     LeadCreate,
+    LeadFilters,
     LeadOut,
+    LeadPagination,
     LeadUpdate,
     LeadUpdateStatus,
 )
@@ -18,15 +19,24 @@ from app.schema.user import MeUser
 router = APIRouter(prefix="/leads", tags=["Leads"])
 
 
-@router.get("/", response_model=List[LeadOut])
+@router.get("/", response_model=LeadPagination)
 async def read_leads(
     skip: int = 0,
     limit: int = 100,
+    filters: LeadFilters = Depends(LeadFilters),
     db: AsyncSession = Depends(get_db),
     user=Depends(get_auth_user),
 ):
-    leads = await crud_lead.get_multi(db, skip=skip, limit=limit)
-    return leads
+    leads = await crud_lead.get_multi(db, skip=skip, limit=limit, filters=filters)
+    total = len(leads)
+    return LeadPagination(
+        items=jsonable_encoder(leads),
+        total=total,
+        page=skip,
+        limit=limit,
+        has_next=total == limit,  # if total is equal to limit, probably there next page
+        has_prev=skip > 0,
+    )
 
 
 @router.post("/", response_model=LeadOut)
@@ -84,6 +94,11 @@ async def update_lead_status(
             status_code=400, detail="You can't change status lead to NEW"
         )
 
+    if lead_in.status == LeadStatus.QUALIFIED and not lead.email:
+        raise HTTPException(
+            status_code=400,
+            detail="You can't change status lead to QUALIFIED if you don't have email",
+        )
     return await crud_lead.update(
         db, db_obj=lead, obj_in=lead_in.dict(exclude_unset=True), user_id=user.id
     )

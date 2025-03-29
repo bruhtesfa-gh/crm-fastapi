@@ -1,5 +1,6 @@
 from typing import List, Optional
 
+from fastapi import Depends
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.crud.audit import crud_audit
 from app.models import EntityType, Lead
 from app.schema.auditlog import AuditLogCreate
+from app.schema.lead import LeadFilters
 
 
 class CRUDLead:
@@ -16,9 +18,31 @@ class CRUDLead:
         return result.scalar_one_or_none()
 
     async def get_multi(
-        self, db: AsyncSession, skip: int = 0, limit: int = 100
+        self,
+        db: AsyncSession,
+        skip: int = 0,
+        limit: int = 100,
+        filters: LeadFilters = Depends(LeadFilters),
     ) -> List[Lead]:
         query = select(Lead).offset(skip).limit(limit)
+        if filters.name:
+            query = query.where(Lead.name.ilike(f"%{filters.name}%"))
+        if filters.email:
+            query = query.where(Lead.email.ilike(f"%{filters.email}%"))
+        if filters.phone:
+            query = query.where(Lead.phone.ilike(f"%{filters.phone}%"))
+        if filters.status:
+            query = query.where(Lead.status == filters.status)
+        if filters.utm_source:
+            query = query.where(Lead.utm_source.ilike(f"%{filters.utm_source}%"))
+        if filters.utm_medium:
+            query = query.where(Lead.utm_medium.ilike(f"%{filters.utm_medium}%"))
+        if filters.utm_campaign:
+            query = query.where(Lead.utm_campaign.ilike(f"%{filters.utm_campaign}%"))
+        if filters.utm_content:
+            query = query.where(Lead.utm_content.ilike(f"%{filters.utm_content}%"))
+        if filters.utm_term:
+            query = query.where(Lead.utm_term.ilike(f"%{filters.utm_term}%"))
         result = await db.execute(query)
         return result.scalars().all()
 
@@ -34,7 +58,7 @@ class CRUDLead:
             action="Create Lead",
             after_values=after_values,
         )
-        crud_audit.create(db, obj_in=obj_audit)
+        await crud_audit.create(obj_in=obj_audit)
         return obj_in
 
     async def update(
@@ -56,7 +80,7 @@ class CRUDLead:
             after_values=after_values,
             action="Update Lead",
         )
-        crud_audit.create(db, obj_in=_obj_in)
+        await crud_audit.create(obj_in=_obj_in)
         return db_obj
 
     async def remove(
@@ -74,7 +98,7 @@ class CRUDLead:
                 before_values=before_values,
                 action="Delete Lead",
             )
-            crud_audit.create(db, obj_in=_obj_in)
+            await crud_audit.create(obj_in=_obj_in)
         return obj
 
 

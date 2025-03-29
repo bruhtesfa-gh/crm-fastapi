@@ -3,7 +3,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import auth, leads, quotations, roles, users
+from app.api import auditlog, auth, leads, quotations, roles, users
 from app.util.setting import get_settings
 
 settings = get_settings()
@@ -69,3 +69,4 @@ app.include_router(users.router)
 app.include_router(roles.router)
 app.include_router(leads.router)
 app.include_router(quotations.router)
+app.include_router(auditlog.router)

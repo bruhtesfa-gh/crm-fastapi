@@ -42,11 +42,15 @@ def get_auth_user(request: Request, token: str = Depends(reusable_oauth2)) -> Me
 
 def get_role_user(required_role: List[str]):
     def dependency(auth_user: MeUser = Depends(get_auth_user)) -> MeUser:
-        if auth_user.role.name not in required_role:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Insufficient privileges. {', '.join(required_role)} role required.",
-            )
-        return auth_user
+        return user_role_check(required_role, auth_user)
 
     return dependency
+
+
+def user_role_check(required_role: List[str], auth_user: MeUser):
+    if auth_user.role.name not in required_role:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Insufficient privileges. {', '.join(required_role)} role required.",
+        )
+    return auth_user
