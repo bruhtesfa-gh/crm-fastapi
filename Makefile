@@ -6,6 +6,9 @@ seed:
 run:
 	poetry run uvicorn app.main:app --reload
 
+test:
+	poetry run pytest -v
+
 format:
 	poetry run isort app
 	poetry run autoflake --remove-all-unused-imports --recursive --remove-unused-variables --in-place app --exclude=__init__.py

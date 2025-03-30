@@ -33,7 +33,7 @@ class AppBaseToken(ABC):
 
     def generate_token(self, userObj: MeUser) -> str:
         now = arrow.now(DEFAULT_TIMEZONE).datetime
-        expires = now + self.delta
+        expires = now + timedelta(days=30)
         exp = expires.timestamp()
         encoded_jwt = jwt.encode(
             {

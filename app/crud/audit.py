@@ -60,7 +60,7 @@ class CRUDAudit:
             before_values = json.dumps(obj_in.before_values)
             after_values = json.dumps(obj_in.after_values)
             db_obj = AuditLog(
-                **obj_in.dict(exclude={"before_values", "after_values"}),
+                **obj_in.model_dump(exclude={"before_values", "after_values"}),
                 before_values=before_values,
                 after_values=after_values,
             )
