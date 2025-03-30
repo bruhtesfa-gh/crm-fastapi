@@ -1,10 +1,9 @@
 import random
 import string
-from datetime import date
-from typing import Dict, Optional
+from typing import Dict
 
 from fastapi.testclient import TestClient
-from pydantic import UUID4
+
 
 def random_lower_string() -> str:
     return "".join(random.choices(string.ascii_lowercase, k=12))

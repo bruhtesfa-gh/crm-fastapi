@@ -12,7 +12,6 @@ from app.schema import MeUser, UpdateUserBody, UpdateUserRoleBody
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
-
 @router.get("/", response_model=List[MeUser])
 async def get_users(
     skip: int = 0,
@@ -25,6 +24,7 @@ async def get_users(
     """
     users = await user_crud.get_multi(db, skip=skip, limit=limit)
     return jsonable_encoder(users)
+
 
 @router.get("/me", response_model=MeUser)
 async def get_current_user(
@@ -54,7 +54,7 @@ async def get_user(
     user = await user_crud.get(db, id=user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
     if user.id != me.id:
         user_role_check(["Manager"], me)
 

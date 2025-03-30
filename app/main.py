@@ -12,30 +12,6 @@ settings = get_settings()
 logger = logging.getLogger("app")
 
 
-# def create_application() -> FastAPI:
-#     """
-#     Create the FastAPI application
-#     """
-#     # create the FastAPI application
-#     application = FastAPI(
-#         title="Async CRM Backend",
-#         root_path="",
-#         openapi_url="/openapi.json",
-#         swagger_ui_parameters={"docExpansion": "none"},
-#         debug=False,
-#     )
-#     #
-#     # CORS
-#     application.add_middleware(
-#         CORSMiddleware,
-#         allow_origins=settings.ALLOWED_HOSTS,
-#         allow_credentials=True,
-#         allow_methods=["*"],
-#         allow_headers=["*"],
-#     )
-#     return application
-
-
 app: FastAPI = FastAPI(
     title="Async CRM Backend",
     root_path="",

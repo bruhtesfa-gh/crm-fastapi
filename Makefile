@@ -1,13 +1,21 @@
 .PHONY: run format lint
 
+init:
+	python -m venv .venv
+	source .venv/bin/activate
+	pip install --upgrade pip
+	pip install poetry
+	poetry install
+
 seed:
+	poetry run alembic upgrade head
 	poetry run python seed.py
 
 run:
 	poetry run uvicorn app.main:app --reload
 
 test:
-	poetry run pytest -v
+	poetry run pytest --asyncio-mode=auto
 
 format:
 	poetry run isort app
@@ -20,3 +28,13 @@ lint:
 	poetry run black app --check
 	poetry run isort --check-only app
 	poetry run flake8 app
+
+build:
+	docker-compose up --build
+
+run-docker:
+	docker-compose up
+
+
+
+

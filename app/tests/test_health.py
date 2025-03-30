@@ -1,6 +1,7 @@
-from typing import Dict
-from httpx import AsyncClient
 import logging
+
+from httpx import AsyncClient
+
 
 async def test_health(client: AsyncClient) -> None:
     r = await client.get("/")

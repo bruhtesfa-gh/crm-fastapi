@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.db import AsyncSessionLocal  # Your async session maker
+from app.db import AsyncSessionLocal
 from app.models import AuditLog
 from app.schema import AuditLogCreate
 from app.schema.auditlog import AuditLogFilters

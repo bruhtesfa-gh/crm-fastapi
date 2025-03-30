@@ -1,3 +1,4 @@
 [flake8]
 max-line-length = 112
 exclude = .git,__pycache__,__init__.py,.mypy_cache,.pytest_cache
+ignore = E501,F541,W503

@@ -53,7 +53,7 @@ async def register(body: RegisterBody, db: AsyncSession = Depends(get_db)) -> Di
     db_role = await role_crud.get_by_name(db, name=body.role)
     if not db_role:
         raise HTTPException(status_code=400, detail="Role not found")
-    
+
     # Create new user
     user = await user_crud.create(
         db,

@@ -9,8 +9,11 @@ ENV PYTHONUNBUFFERED 1
 WORKDIR /app
 
 # Install dependencies
-COPY requirements.txt .
-RUN pip install --upgrade pip && pip install -r requirements.txt
+COPY pyproject.toml .
+COPY poetry.lock .
+RUN pip install --upgrade pip
+RUN pip install poetry
+RUN poetry install --no-root
 
 # Copy project files into the container
 COPY . .
@@ -19,4 +22,4 @@ COPY . .
 EXPOSE 8000
 
 # Start the app with Uvicorn
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["poetry", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
