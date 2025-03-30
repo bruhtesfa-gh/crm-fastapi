@@ -38,7 +38,7 @@ A robust CRM (Customer Relationship Management) backend system built with FastAP
 
 ## Prerequisites
 
-- Python 3.8+
+- Python 3.10+
 - PostgreSQL
 - Docker (optional)
 
@@ -78,8 +78,8 @@ cp .env.example .env
 
 1. Create database:
 
-```bash
-createdb crm_db
+```sql
+CREATE DATABASE  crm
 ```
 
 2. Run migrations:
@@ -93,7 +93,7 @@ make seed
 ### Development
 
 ```bash
-uvicorn app.main:app --reload
+poetry run uvicorn app.main:app --reload
 ```
 
 ### Production
@@ -120,13 +120,13 @@ Once running, access the API documentation at:
 Run tests with pytest:
 
 ```bash
-pytest
+pytest --asyncio-mode=auto
 ```
 
 Run with coverage:
 
 ```bash
-pytest --cov=app tests/
+make test
 ```
 
 ## Project Structure
