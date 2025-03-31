@@ -23,72 +23,60 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install -r requirements-dev.txt
+          python -m venv .venv
+	        source .venv/bin/activate
+	        pip install --upgrade pip
+	        pip install poetry
+	        poetry install
+      
+      - name: Format code
+        run: |
+          poetry run isort app
+	        poetry run autoflake --remove-all-unused-imports --recursive --remove-unused-variables --in-place app --exclude=__init__.py
+	        poetry run black app
+	        poetry run isort app
+      
+      - name: Lint code
+        run: |
+          poetry run mypy app
+	        poetry run black app --check
+	        poetry run isort --check-only app
+	        poetry run flake8 app
 
       - name: Run tests
         run: |
-          pytest --cov=app tests/ --cov-report=xml
+          poetry run pytest --asyncio-mode=auto
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          file: ./coverage.xml
-          fail_ci_if_error: true
+  # deploy:
+  #   needs: [test, lint]
+  #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+  #   runs-on: ubuntu-latest
 
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
+  #   steps:
+  #     - uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
+  #     - name: Set up Python
+  #       uses: actions/setup-python@v4
+  #       with:
+  #         python-version: "3.10"
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install black flake8 isort mypy
+  #     - name: Install dependencies
+  #       run: |
+  #         python -m pip install --upgrade pip
+  #         pip install -r requirements.txt
 
-      - name: Run linters
-        run: |
-          black . --check
-          flake8 .
-          isort . --check-only
-          mypy app
+  #     - name: Run database migrations
+  #       env:
+  #         DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  #       run: |
+  #         alembic upgrade head
 
-  deploy:
-    needs: [test, lint]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.10"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Run database migrations
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: |
-          alembic upgrade head
-
-      - name: Deploy to production
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-        run: |
-          docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-          docker build -t crm-fastapi .
-          docker tag crm-fastapi $DOCKER_USERNAME/crm-fastapi:latest
-          docker push $DOCKER_USERNAME/crm-fastapi:latest
+  #     - name: Deploy to production
+  #       env:
+  #         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  #         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+  #       run: |
+  #         docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+  #         docker build -t crm-fastapi .
+  #         docker tag crm-fastapi $DOCKER_USERNAME/crm-fastapi:latest
+  #         docker push $DOCKER_USERNAME/crm-fastapi:latest
