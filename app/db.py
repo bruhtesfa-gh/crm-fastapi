@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from app.util.setting import get_settings
 
 settings = get_settings()
-DATABASE_URL = settings.DATABASE_URL | "sqlite+aiosqlite:///:memory:"
+DATABASE_URL = settings.DATABASE_URL
 
 engine = create_async_engine(DATABASE_URL, echo=False)
 
